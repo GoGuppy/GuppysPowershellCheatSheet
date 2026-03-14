@@ -370,6 +370,97 @@ Write-Host "Done. $($InactiveUsers.Count) inactive users exported." -ForegroundC
     <div class="note"><strong>Don't be stupid!!!</strong> This script is detection only — review the CSV before running any disable or licensing changes.</div>
   </div>
 
+  <!-- ── NEXT STEPS ── -->
+  <div class="section-label">Optional Next Steps</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">A</div>
+      <div class="card-meta">
+        <div class="card-title">Lock Accounts from CSV</div>
+        <div class="card-desc">Disable every account in the exported CSV.</div>
+      </div>
+      <span class="tag tag-retire">retire signal</span>
+    </div>
+    <div class="code-wrap">
+      <pre id="codeA">Connect-MgGraph -Scopes "User.ReadWrite.All"
+
+Import-Csv ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" | ForEach-Object {
+    Update-MgUser -UserId $_.UserPrincipalName -AccountEnabled:$false
+    Write-Host "Locked: $($_.UserPrincipalName)" -ForegroundColor Red
+}</pre>
+      <button class="copy-btn" onclick="copyCode('codeA', this)">Copy</button>
+    </div>
+    <div class="note"><strong>Don't be stupid!!!</strong> Run detection first and confirm the CSV looks right before locking anything.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">B</div>
+      <div class="card-meta">
+        <div class="card-title">Randomize Passwords from CSV</div>
+        <div class="card-desc">Set a random password on each account in the CSV.</div>
+      </div>
+      <span class="tag tag-retire">retire signal</span>
+    </div>
+    <div class="code-wrap">
+      <pre id="codeB">Connect-MgGraph -Scopes "User.ReadWrite.All"
+
+Import-Csv ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" | ForEach-Object {
+    $randomPw = [System.Web.Security.Membership]::GeneratePassword(20, 4)
+    $pwProfile = @{ Password = $randomPw; ForceChangePasswordNextSignIn = $false }
+    Update-MgUser -UserId $_.UserPrincipalName -PasswordProfile $pwProfile
+    Write-Host "Password reset: $($_.UserPrincipalName)" -ForegroundColor Yellow
+}</pre>
+      <button class="copy-btn" onclick="copyCode('codeB', this)">Copy</button>
+    </div>
+    <div class="note"><strong>Note:</strong> Requires <code style="color:#79c0ff;font-family:Consolas">Add-Type -AssemblyName System.Web</code> if the GeneratePassword call errors. Pair with locking (Step A) for full lockout.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">C</div>
+      <div class="card-meta">
+        <div class="card-title">Convert Accounts to Shared Mailbox</div>
+        <div class="card-desc">Convert each mailbox in the CSV to a shared mailbox.</div>
+      </div>
+      <span class="tag tag-retire">retire signal</span>
+    </div>
+    <div class="code-wrap">
+      <pre id="codeC">Connect-ExchangeOnline
+
+Import-Csv ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" | ForEach-Object {
+    Set-Mailbox -Identity $_.UserPrincipalName -Type Shared
+    Write-Host "Converted to shared: $($_.UserPrincipalName)" -ForegroundColor Cyan
+}</pre>
+      <button class="copy-btn" onclick="copyCode('codeC', this)">Copy</button>
+    </div>
+    <div class="note"><strong>Note:</strong> Requires <code style="color:#79c0ff;font-family:Consolas">Install-Module ExchangeOnlineManagement</code>.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">D</div>
+      <div class="card-meta">
+        <div class="card-title">Remove Licenses from CSV</div>
+        <div class="card-desc">Strip all assigned licenses from each account in the CSV.</div>
+      </div>
+      <span class="tag tag-retire">retire signal</span>
+    </div>
+    <div class="code-wrap">
+      <pre id="codeD">Connect-MgGraph -Scopes "User.ReadWrite.All"
+
+Import-Csv ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" | ForEach-Object {
+    $user    = Get-MgUser -UserId $_.UserPrincipalName -Property "assignedLicenses"
+    $skuIds  = $user.AssignedLicenses | Select-Object -ExpandProperty SkuId
+    Set-MgUserLicense -UserId $_.UserPrincipalName -AddLicenses @() -RemoveLicenses $skuIds
+    Write-Host "Licenses removed: $($_.UserPrincipalName)" -ForegroundColor Yellow
+}</pre>
+      <button class="copy-btn" onclick="copyCode('codeD', this)">Copy</button>
+    </div>
+    <div class="note"><strong>Don't be stupid!!!</strong> Do this after converting to shared mailbox (Step C) — not before, or the mailbox conversion may fail.</div>
+  </div>
+
 </div><!-- /main -->
 
 <footer>
