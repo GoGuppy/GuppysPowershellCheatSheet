@@ -244,61 +244,27 @@
     </div>
   </div>
 
-  <!-- ── CONFIGURE ── -->
-  <div class="section-label">Configure</div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="step-num">3</div>
-      <div class="card-meta">
-        <div class="card-title">Set Inactive Threshold</div>
-        <div class="card-desc">Define cutoff — change 60 to whatever you need.</div>
-      </div>
-      <span class="tag tag-foundation">foundation</span>
-    </div>
-    <div class="code-wrap">
-      <pre id="code3">$DaysInactive = 60
-$CutoffDate   = (Get-Date).AddDays(-$DaysInactive)</pre>
-      <button class="copy-btn" onclick="copyCode('code3', this)">Copy</button>
-    </div>
-  </div>
-
   <!-- ── QUERY ── -->
   <div class="section-label">Query</div>
 
   <div class="card">
     <div class="card-header">
-      <div class="step-num">4</div>
+      <div class="step-num">3</div>
       <div class="card-meta">
         <div class="card-title">Pull All Licensed Active Users</div>
-        <div class="card-desc">Queries all enabled, licensed accounts with sign-in data.</div>
+        <div class="card-desc">Pulls all enabled, licensed accounts with sign-in data.</div>
       </div>
       <span class="tag tag-slow">slow</span>
     </div>
     <div class="code-wrap">
-      <pre id="code4">$Users = Get-MgUser -All `
-    -Filter "assignedLicenses/`$count ne 0 and accountEnabled eq true" `
-    -CountVariable TotalCount `
-    -ConsistencyLevel eventual `
-    -Property "id, displayName, userPrincipalName, signInActivity, assignedLicenses"</pre>
-      <button class="copy-btn" onclick="copyCode('code4', this)">Copy</button>
-    </div>
-    <div class="note"><strong>Note:</strong> Large tenants may take a minute. The <code style="color:#79c0ff;font-family:Consolas">-ConsistencyLevel eventual</code> flag is required for <code style="color:#79c0ff;font-family:Consolas">$count</code> filters.</div>
-  </div>
+      <pre id="code3">$Users = Get-MgUser -All `
+    -Filter "accountEnabled eq true" `
+    -Property "displayName, userPrincipalName, signInActivity, assignedLicenses"
 
-  <div class="card">
-    <div class="card-header">
-      <div class="step-num">5</div>
-      <div class="card-meta">
-        <div class="card-title">Sanity Check — User Count</div>
-        <div class="card-desc">Verify the query returned results before continuing.</div>
-      </div>
-      <span class="tag tag-foundation">foundation</span>
+$Users.Count</pre>
+      <button class="copy-btn" onclick="copyCode('code3', this)">Copy</button>
     </div>
-    <div class="code-wrap">
-      <pre id="code5">$Users.Count</pre>
-      <button class="copy-btn" onclick="copyCode('code5', this)">Copy</button>
-    </div>
+    <div class="note"><strong>Note:</strong> Pulls all enabled users — licensed and inactive filtering happens in Step 4. Large tenants may take a minute.</div>
   </div>
 
   <!-- ── FILTER ── -->
@@ -306,7 +272,7 @@ $CutoffDate   = (Get-Date).AddDays(-$DaysInactive)</pre>
 
   <div class="card">
     <div class="card-header">
-      <div class="step-num">6</div>
+      <div class="step-num">4</div>
       <div class="card-meta">
         <div class="card-title">Filter to Inactive Users Only</div>
         <div class="card-desc">Isolates accounts past the cutoff or with no sign-in ever.</div>
@@ -314,61 +280,49 @@ $CutoffDate   = (Get-Date).AddDays(-$DaysInactive)</pre>
       <span class="tag tag-retire">retire signal</span>
     </div>
     <div class="code-wrap">
-      <pre id="code6">$InactiveUsers = $Users | Where-Object {
-    $lastSignIn = $_.SignInActivity?.LastSignInDateTime
-    ($null -eq $lastSignIn) -or ([datetime]$lastSignIn -lt $CutoffDate)
+      <pre id="code4">$InactiveUsers = $Users | Where-Object {
+    $_.AssignedLicenses.Count -gt 0 -and (
+        -not $_.SignInActivity -or
+        [datetime]$_.SignInActivity.LastSignInDateTime -lt (Get-Date).AddDays(-60)
+    )
 }
 
 $InactiveUsers.Count</pre>
-      <button class="copy-btn" onclick="copyCode('code6', this)">Copy</button>
+      <button class="copy-btn" onclick="copyCode('code4', this)">Copy</button>
     </div>
     <div class="note"><strong>Note:</strong> <code style="color:#79c0ff;font-family:Consolas">$null</code> sign-in = account was created but never used. Counts as inactive.</div>
   </div>
 
-  <!-- ── REVIEW ── -->
-  <div class="section-label">Review</div>
+  <!-- ── RESULTS & EXPORT ── -->
+  <div class="section-label">Results &amp; Export</div>
 
   <div class="card">
     <div class="card-header">
-      <div class="step-num">7</div>
+      <div class="step-num">5</div>
       <div class="card-meta">
-        <div class="card-title">View Results in Console</div>
-        <div class="card-desc">Display inactive users sorted by last sign-in date.</div>
-      </div>
-      <span class="tag tag-foundation">foundation</span>
-    </div>
-    <div class="code-wrap">
-      <pre id="code7">$InactiveUsers | Select-Object DisplayName, UserPrincipalName,
-    @{ Name = "LastSignIn"; Expression = {
-        $_.SignInActivity?.LastSignInDateTime ?? "Never"
-    }} |
-    Sort-Object LastSignIn |
-    Format-Table -AutoSize</pre>
-      <button class="copy-btn" onclick="copyCode('code7', this)">Copy</button>
-    </div>
-  </div>
-
-  <!-- ── EXPORT ── -->
-  <div class="section-label">Export</div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="step-num">8</div>
-      <div class="card-meta">
-        <div class="card-title">Export to CSV</div>
-        <div class="card-desc">Save results to file before touching anything.</div>
+        <div class="card-title">View Results + Export to CSV</div>
+        <div class="card-desc">Preview in console and save to file before touching anything.</div>
       </div>
       <span class="tag tag-export">export</span>
     </div>
     <div class="code-wrap">
-      <pre id="code8">$InactiveUsers | Select-Object DisplayName, UserPrincipalName,
+      <pre id="code5">$InactiveUsers | Select-Object DisplayName, UserPrincipalName,
     @{ Name = "LastSignIn"; Expression = {
-        $_.SignInActivity?.LastSignInDateTime ?? "Never"
+        if ($_.SignInActivity) { $_.SignInActivity.LastSignInDateTime } else { "Never" }
     }} |
-    Export-Csv -Path ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" -NoTypeInformation</pre>
-      <button class="copy-btn" onclick="copyCode('code8', this)">Copy</button>
+    Sort-Object LastSignIn |
+    Format-Table -AutoSize
+
+$InactiveUsers | Select-Object DisplayName, UserPrincipalName,
+    @{ Name = "LastSignIn"; Expression = {
+        if ($_.SignInActivity) { $_.SignInActivity.LastSignInDateTime } else { "Never" }
+    }} |
+    Export-Csv -Path ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" -NoTypeInformation
+
+Write-Host "Done. $($InactiveUsers.Count) inactive users exported." -ForegroundColor Green</pre>
+      <button class="copy-btn" onclick="copyCode('code5', this)">Copy</button>
     </div>
-    <div class="note"><strong>Don't be stupid!!!</strong> Always export and review the CSV before running any disable or licensing changes against this list.</div>
+    <div class="note"><strong>Don't be stupid!!!</strong> Review the CSV before running any disable or licensing changes against this list.</div>
   </div>
 
   <!-- ── FULL SCRIPT ── -->
@@ -384,38 +338,29 @@ $InactiveUsers.Count</pre>
       <span class="tag tag-export">export</span>
     </div>
     <div class="code-wrap">
-      <pre id="codefull"># Connect
-Connect-MgGraph -Scopes "User.Read.All", "AuditLog.Read.All"
+      <pre id="codefull">Connect-MgGraph -Scopes "User.Read.All", "AuditLog.Read.All"
 
-# Set threshold
-$DaysInactive = 60
-$CutoffDate   = (Get-Date).AddDays(-$DaysInactive)
-
-# Pull all licensed, enabled users
 $Users = Get-MgUser -All `
-    -Filter "assignedLicenses/`$count ne 0 and accountEnabled eq true" `
-    -CountVariable TotalCount `
-    -ConsistencyLevel eventual `
-    -Property "id, displayName, userPrincipalName, signInActivity, assignedLicenses"
+    -Filter "accountEnabled eq true" `
+    -Property "displayName, userPrincipalName, signInActivity, assignedLicenses"
 
-# Filter to inactive only
 $InactiveUsers = $Users | Where-Object {
-    $lastSignIn = $_.SignInActivity?.LastSignInDateTime
-    ($null -eq $lastSignIn) -or ([datetime]$lastSignIn -lt $CutoffDate)
+    $_.AssignedLicenses.Count -gt 0 -and (
+        -not $_.SignInActivity -or
+        [datetime]$_.SignInActivity.LastSignInDateTime -lt (Get-Date).AddDays(-60)
+    )
 }
 
-# Preview in console
 $InactiveUsers | Select-Object DisplayName, UserPrincipalName,
     @{ Name = "LastSignIn"; Expression = {
-        $_.SignInActivity?.LastSignInDateTime ?? "Never"
+        if ($_.SignInActivity) { $_.SignInActivity.LastSignInDateTime } else { "Never" }
     }} |
     Sort-Object LastSignIn |
     Format-Table -AutoSize
 
-# Export to CSV
 $InactiveUsers | Select-Object DisplayName, UserPrincipalName,
     @{ Name = "LastSignIn"; Expression = {
-        $_.SignInActivity?.LastSignInDateTime ?? "Never"
+        if ($_.SignInActivity) { $_.SignInActivity.LastSignInDateTime } else { "Never" }
     }} |
     Export-Csv -Path ".\InactiveUsers_$(Get-Date -Format 'yyyyMMdd').csv" -NoTypeInformation
 
