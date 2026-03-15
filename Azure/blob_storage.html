@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blob Storage · Azure · Guppy's PS Cheat Sheets</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #c9d1d9; font-family: 'Segoe UI', system-ui, sans-serif; padding: 0 0 60px; min-height: 100vh; }
+  header { background: #0d1117; border-bottom: 1px solid #21262d; padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-box { background: #58a6ff; color: #0d1117; font-family: 'Consolas', monospace; font-size: 13px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .logo-name { font-family: 'Consolas', monospace; font-size: 14px; font-weight: 600; color: #e6edf3; }
+  .logo-name span { color: #58a6ff; }
+  .back { font-family: 'Consolas', monospace; font-size: 11px; color: #58a6ff; text-decoration: none; }
+  .back:hover { text-decoration: underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 32px 0; }
+  .breadcrumb { font-family: 'Consolas', monospace; font-size: 11px; color: #484f58; margin-bottom: 16px; }
+  .breadcrumb a { color: #58a6ff; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  h1 { font-size: 22px; font-weight: 600; color: #e6edf3; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #6e7681; margin-bottom: 24px; }
+  .warning-box { background: #2b1d04; border: 1px solid #d29922; border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; font-size: 12px; color: #e3b341; line-height: 1.6; }
+  .warning-box strong { color: #f0c040; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #484f58; margin: 28px 0 8px 2px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; margin-bottom: 7px; overflow: hidden; transition: border-color .15s; }
+  .card:hover { border-color: #30363d; }
+  .card-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px 9px; }
+  .step { min-width: 22px; height: 22px; border-radius: 50%; background: #21262d; border: 1px solid #30363d; color: #6e7681; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .card-info { flex: 1; }
+  .card-title { font-size: 13px; font-weight: 500; color: #e6edf3; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .card-desc { font-size: 11px; color: #6e7681; margin-top: 2px; line-height: 1.4; }
+  .code-wrap { position: relative; margin: 0 12px 10px 44px; }
+  .code-block { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 8px 44px 8px 10px; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 11.5px; color: #79c0ff; white-space: pre-wrap; word-break: break-all; line-height: 1.65; }
+  .copy-btn { position: absolute; top: 6px; right: 6px; background: #21262d; border: 1px solid #30363d; border-radius: 5px; color: #8b949e; font-size: 10px; padding: 3px 8px; cursor: pointer; font-family: inherit; transition: background .1s, color .1s; }
+  .copy-btn:hover { background: #30363d; color: #e6edf3; }
+  .copy-btn.done { background: #0d2b17; color: #3fb950; border-color: #1a4226; }
+  .tag { font-size: 10px; font-weight: 500; padding: 1px 7px; border-radius: 999px; }
+  .tag-key    { background: #0d2341; color: #58a6ff; }
+  .tag-slow   { background: #2b1d04; color: #d29922; }
+  .tag-fire   { background: #2b0d0d; color: #f85149; }
+  .tag-warn   { background: #2b1d04; color: #e3b341; }
+  .tag-net    { background: #1a1230; color: #bc8cff; }
+  .tag-info   { background: #0d2626; color: #39c5cf; }
+  footer { max-width: 860px; margin: 48px auto 0; padding: 20px 32px 0; border-top: 1px solid #21262d; font-family: 'Consolas', monospace; font-size: 11px; color: #484f58; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer a { color: #58a6ff; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="../index.html">
+    <div class="logo-box">PS</div>
+    <div class="logo-name">Guppy's<span>PowerShell</span>CheatSheet</div>
+  </a>
+  <a class="back" href="index.html">← Azure</a>
+</header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="../index.html">Home</a> › <a href="index.html">Azure</a> › Blob Storage</div>
+  <h1>🪣 Azure Blob Storage</h1>
+  <div class="subtitle">Az PowerShell Module · AZ-104 · Containers, upload/download blobs, access tiers, SAS tokens, and lifecycle</div>
+
+  <div class="warning-box">
+    <strong>Don't be stupid!!!</strong> Blob container names must be lowercase, 3–63 chars. Blob tiers: Hot = frequent access (higher storage cost), Cool = infrequent (lower cost, higher retrieval), Archive = rarely accessed (cheapest storage, hours to rehydrate). Public access on containers exposes ALL blobs inside anonymously — only enable intentionally. Delete the resource group when done to stop billing.
+  </div>
+
+  <div id="root"></div>
+</div>
+
+<footer>
+  <span>GoGuppy · GuppysPowershellCheatSheet</span>
+  <a href="https://github.com/GoGuppy/GuppysPowershellCheatSheet" target="_blank">github.com/GoGuppy/GuppysPowershellCheatSheet</a>
+</footer>
+
+<script>
+const steps = [
+  {
+    n:"1", title:"Connect to Azure", tag:"key",
+    desc:"Authenticate to your Azure subscription.",
+    code:`Connect-AzAccount`
+  },
+  {
+    n:"2", title:"Create a Resource Group", tag:"key",
+    desc:"Container for all resources in this deployment.",
+    code:`New-AzResourceGroup -Name "MyRG" -Location "eastus"`
+  },
+  {
+    n:"3", title:"Create a Storage Account", tag:"key",
+    desc:"Blob containers live inside a storage account.",
+    code:`New-AzStorageAccount -ResourceGroupName "MyRG" -Name "mystorageacct001" -Location "eastus" -SkuName "Standard_LRS" -Kind "StorageV2"`
+  },
+  {
+    n:"4", title:"Create a Storage Context", tag:"key",
+    desc:"Context holds auth credentials — required for every blob operation below.",
+    code:`$key = (Get-AzStorageAccountKey -ResourceGroupName "MyRG" -Name "mystorageacct001")[0].Value
+$ctx = New-AzStorageContext -StorageAccountName "mystorageacct001" -StorageAccountKey $key`
+  },
+  {
+    n:"5", title:"Create a Blob Container", tag:"key",
+    desc:"Off = private (default, recommended). Blob = anonymous read for blobs. Container = anonymous read for the whole container.",
+    code:`New-AzStorageContainer -Name "mycontainer" -Permission Off -Context $ctx`
+  },
+  {
+    n:"6", title:"List Blob Containers", tag:"info",
+    desc:"Show all containers in this storage account.",
+    code:`Get-AzStorageContainer -Context $ctx`
+  },
+  {
+    n:"7", title:"Upload a Blob", tag:"key",
+    desc:"Uploads a local file as a block blob. -Properties lets you set Content-Type.",
+    code:`Set-AzStorageBlobContent -Container "mycontainer" -File "C:\Temp\report.pdf" -Blob "reports/report.pdf" -Context $ctx`
+  },
+  {
+    n:"8", title:"List Blobs in a Container", tag:"info",
+    desc:"List all blobs in the container. Add -Prefix to filter by path.",
+    code:`Get-AzStorageBlob -Container "mycontainer" -Context $ctx`
+  },
+  {
+    n:"9", title:"Download a Blob", tag:"info",
+    desc:"Downloads a blob from the container to a local path.",
+    code:`Get-AzStorageBlobContent -Container "mycontainer" -Blob "reports/report.pdf" -Destination "C:\Temp\report.pdf" -Context $ctx`
+  },
+  {
+    n:"10", title:"Change Blob Access Tier", tag:"warn",
+    desc:"Move a blob between Hot, Cool, and Archive. Rehydrating from Archive can take hours.",
+    code:`$blob = Get-AzStorageBlob -Container "mycontainer" -Blob "reports/report.pdf" -Context $ctx
+$blob.ICloudBlob.SetStandardBlobTier("Cool")`
+  },
+  {
+    n:"11", title:"Generate a Blob SAS Token", tag:"warn",
+    desc:"Creates a time-limited URL for a specific blob. Treat it like a password.",
+    code:`$expire = (Get-Date).AddHours(2)
+New-AzStorageBlobSASToken -Container "mycontainer" -Blob "reports/report.pdf" -Permission "r" -ExpiryTime $expire -Context $ctx -FullUri`
+  },
+  {
+    n:"12", title:"Copy a Blob Between Containers", tag:"info",
+    desc:"Server-side copy — no data leaves Azure. Fast and free.",
+    code:`Start-AzStorageBlobCopy -SrcContainer "mycontainer" -SrcBlob "reports/report.pdf" -DestContainer "myarchive" -DestBlob "reports/report.pdf" -Context $ctx`
+  },
+  {
+    n:"13", title:"Delete a Blob", tag:"fire",
+    desc:"Permanently removes the blob. Enable soft delete on the account if you want a safety net.",
+    code:`Remove-AzStorageBlob -Container "mycontainer" -Blob "reports/report.pdf" -Context $ctx`
+  },
+  {
+    n:"14", title:"Delete a Container", tag:"fire",
+    desc:"Deletes the container and everything inside it.",
+    code:`Remove-AzStorageContainer -Name "mycontainer" -Context $ctx -Force`
+  },
+  {
+    n:"15", title:"Delete the Resource Group", tag:"fire",
+    desc:"Nukes everything in the group. Stops all billing.",
+    code:`Remove-AzResourceGroup -Name "MyRG" -Force`
+  },
+];
+
+const tagMap = {
+  key:  { label:"required",    cls:"tag-key"  },
+  slow: { label:"slow",        cls:"tag-slow" },
+  fire: { label:"destructive", cls:"tag-fire" },
+  warn: { label:"caution",     cls:"tag-warn" },
+  net:  { label:"networking",  cls:"tag-net"  },
+  info: { label:"info",        cls:"tag-info" },
+};
+
+const sectionBreaks = {
+  "1":  "Setup",
+  "3":  "Storage Account",
+  "5":  "Containers",
+  "7":  "Blob Operations",
+  "10": "Tiers & Access",
+  "13": "Teardown",
+};
+
+const root = document.getElementById('root');
+let currentSection = null;
+
+steps.forEach(s => {
+  if (sectionBreaks[s.n] && sectionBreaks[s.n] !== currentSection) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-label';
+    lbl.textContent = sectionBreaks[s.n];
+    root.appendChild(lbl);
+    currentSection = sectionBreaks[s.n];
+  }
+
+  const tagHTML = s.tag && tagMap[s.tag]
+    ? `<span class="tag ${tagMap[s.tag].cls}">${tagMap[s.tag].label}</span>` : '';
+
+  const escaped = s.code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="step">${s.n}</div>
+      <div class="card-info">
+        <div class="card-title">${s.title} ${tagHTML}</div>
+        <div class="card-desc">${s.desc}</div>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-block">${escaped}</div>
+      <button class="copy-btn">copy</button>
+    </div>`;
+
+  card.querySelector('.copy-btn').addEventListener('click', function() {
+    navigator.clipboard.writeText(s.code).then(() => {
+      this.textContent = '✓ copied';
+      this.classList.add('done');
+      setTimeout(() => { this.textContent = 'copy'; this.classList.remove('done'); }, 1600);
+    });
+  });
+
+  root.appendChild(card);
+});
+</script>
+</body>
+</html>
