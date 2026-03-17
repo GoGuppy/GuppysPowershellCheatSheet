@@ -89,25 +89,23 @@ const steps = [
   // ── Export Specific Resources ─────────────────────────────────────────────
   {
     n:"3", title:"List Resources in a Resource Group", tag:"info",
-    desc:"Three commands — each returns something different. Delete the two you don't need.",
+    desc:"Pick what you want to see — delete the line you don't need.",
     codeHtml:
-      `<span style="color:#484f58"># ── pick one, delete the rest ───────────────────────────────────────────────────</span>\n` +
-      `<span style="color:#58a6ff">Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceId   </span><span style="color:#484f58"> # full resource IDs</span>\n` +
-      `<span style="color:#3fb950">Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty Name         </span><span style="color:#484f58"> # resource names</span>\n` +
-      `<span style="color:#d29922">Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceType </span><span style="color:#484f58"> # resource types</span>`,
+      `<span style="color:#484f58"># ── pick one, delete the other ──────────────────────────────────────────────────</span>\n` +
+      `<span style="color:#3fb950">Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty Name        </span><span style="color:#484f58"> # resource names</span>\n` +
+      `<span style="color:#d29922">Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceType</span><span style="color:#484f58"> # resource types</span>`,
     codePlain:
-      `# full resource IDs\nGet-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceId\n# resource names\nGet-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty Name\n# resource types\nGet-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceType`
+      `Get-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty Name\nGet-AzResource -ResourceGroupName "myrg" | Select-Object -ExpandProperty ResourceType`
   },
   {
     n:"4", title:"Export a Specific Resource", tag:"key",
-    desc:"Three ways to target what you want to export. Delete the two you don't need.",
+    desc:"Pick how you want to target the resource — delete the line you don't need.",
     codeHtml:
-      `<span style="color:#484f58"># ── pick one, delete the rest ───────────────────────────────────────────────────</span>\n` +
-      `<span style="color:#58a6ff">Export-AzResourceGroup -ResourceGroupName "myrg" -Resource @("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myrg/providers/Microsoft.Compute/virtualMachines/myvm") -Path "C:\\temp\\export.json" -Force </span><span style="color:#484f58"> # by resource ID</span>\n` +
+      `<span style="color:#484f58"># ── pick one, delete the other ──────────────────────────────────────────────────</span>\n` +
       `<span style="color:#3fb950">Export-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -Name "myvm" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force  </span><span style="color:#484f58"> # by name</span>\n` +
-      `<span style="color:#d29922">Export-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force           </span><span style="color:#484f58"> # by type</span>`,
+      `<span style="color:#d29922">Export-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force             </span><span style="color:#484f58"> # by type</span>`,
     codePlain:
-      `# by resource ID\nExport-AzResourceGroup -ResourceGroupName "myrg" -Resource @("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myrg/providers/Microsoft.Compute/virtualMachines/myvm") -Path "C:\\temp\\export.json" -Force\n# by name\nExport-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -Name "myvm" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force\n# by type\nExport-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force`
+      `# by name\nExport-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -Name "myvm" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force\n# by type\nExport-AzResourceGroup -ResourceGroupName "myrg" -Resource @(Get-AzResource -ResourceGroupName "myrg" -ResourceType "Microsoft.Compute/virtualMachines" | Select-Object -ExpandProperty ResourceId) -Path "C:\\temp\\export.json" -Force`
   },
 
   // ── Deployment History ────────────────────────────────────────────────────
